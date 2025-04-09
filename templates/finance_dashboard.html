@@ -1,0 +1,66 @@
+{% extends "layouts/base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <div class="jumbotron bg-light text-center">
+        <h1 class="display-4">Finance Dashboard</h1>
+        <p class="lead">Your financial overview at a glance.</p>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-wallet2"></i> Accounts Overview</h5>
+                    <ul class="list-group list-group-flush">
+                        {% for account in accounts %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {{ account.name }} ({{ account.account_type }})
+                            <span class="badge bg-primary rounded-pill">${{ "%.2f"|format(account.balance) }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    <div class="d-grid gap-2 mt-3">
+                        <a href="{{ url_for('finance.accounts') }}" class="btn btn-primary"><i class="bi bi-gear"></i> Manage Accounts</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-credit-card"></i> Recent Transactions</h5>
+                    <ul class="list-group list-group-flush">
+                        {% for transaction in transactions %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="fw-bold">{{ transaction.date.strftime('%Y-%m-%d') }}</span><br>
+                                {{ transaction.description }}
+                            </div>
+                            <span class="badge bg-secondary rounded-pill">${{ "%.2f"|format(transaction.amount) }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    <div class="d-grid gap-2 mt-3">
+                        <a href="{{ url_for('finance.transactions') }}" class="btn btn-primary"><i class="bi bi-list"></i> View All Transactions</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-file-earmark-text"></i> Tax Information</h5>
+                    <p>This section provides tax-related information and tools.</p>
+                    <div class="d-grid gap-2">
+                        <a href="#" class="btn btn-secondary"><i class="bi bi-file-earmark-arrow-down"></i> Tax Reports</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
