@@ -1,6 +1,6 @@
-{% extends "layouts/base.html" %}
-{% block content %}
-<div class="container mt-4">
+{% extends "layouts/finance_base.html" %}
+
+{% block finance_content %}
     <div class="jumbotron bg-light text-center">
         <h1 class="display-4">Finance Dashboard</h1>
         <p class="lead">Your financial overview at a glance.</p>
@@ -9,6 +9,7 @@
     <div class="row">
         <div class="col-md-6">
             <div class="card shadow-sm">
+                <div class="card-header"></div>
                 <div class="card-body">
                     <h5 class="card-title"><i class="bi bi-wallet2"></i> Accounts Overview</h5>
                     <ul class="list-group list-group-flush">
@@ -28,6 +29,8 @@
 
         <div class="col-md-6">
             <div class="card shadow-sm">
+                <div class="card-header"></div>
+
                 <div class="card-body">
                     <h5 class="card-title"><i class="bi bi-credit-card"></i> Recent Transactions</h5>
                     <ul class="list-group list-group-flush">
@@ -50,13 +53,84 @@
     </div>
 
     <div class="row mt-4">
-        <div class="col-md-12">
+        <div class="col-md-6">
             <div class="card shadow-sm">
+                <div class="card-header bill-header-short"></div>
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-receipt"></i> Upcoming Bills</h5>
+                    {% if upcoming_bills %}
+                    <ul class="list-group list-group-flush">
+                        {% for bill in upcoming_bills %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="fw-bold">{{ bill.name }}</span>
+                                <span class="text-muted"> - Due {{ bill.due_date.strftime('%Y-%m-%d') }}</span><br>
+                                <span class="badge {% if bill.bill_type == 'credit_card' %}bg-info{% elif bill.bill_type == 'medical' %}bg-warning{% else %}bg-secondary{% endif %} text-light">
+                                    {{ bill.bill_type|replace('_', ' ')|title }}
+                                </span>
+                            </div>
+                            <span class="badge bg-danger rounded-pill">${{ "%.2f"|format(bill.amount) }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="text-center text-muted">No upcoming bills</p>
+                    {% endif %}
+                    <div class="d-grid gap-2 mt-3">
+                        <a href="{{ url_for('finance.bills') }}" class="btn btn-primary"><i class="bi bi-file-earmark-text"></i> Manage Bills</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header"></div>
+
                 <div class="card-body">
                     <h5 class="card-title"><i class="bi bi-file-earmark-text"></i> Tax Information</h5>
                     <p>This section provides tax-related information and tools.</p>
                     <div class="d-grid gap-2">
                         <a href="#" class="btn btn-secondary"><i class="bi bi-file-earmark-arrow-down"></i> Tax Reports</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="d-grid">
+                                <a href="{{ url_for('finance.accounts') }}" class="btn btn-outline-primary mb-2">
+                                    <i class="bi bi-wallet2"></i> Accounts
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="d-grid">
+                                <a href="{{ url_for('finance.transactions') }}" class="btn btn-outline-primary mb-2">
+                                    <i class="bi bi-credit-card"></i> Transactions
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="d-grid">
+                                <a href="{{ url_for('finance.bills') }}" class="btn btn-outline-primary mb-2">
+                                    <i class="bi bi-receipt"></i> Bills & Invoices
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="d-grid">
+                                <a href="{{ url_for('finance.import_transactions') }}" class="btn btn-outline-primary mb-2">
+                                    <i class="bi bi-upload"></i> Import Data
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

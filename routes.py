@@ -9,7 +9,9 @@ from app.modules.finance.models import Account, Transaction
 from app.modules.finance.importers.oneaz import import_oneaz_transactions
 from app import db
 from app.modules.finance.utils import categorize_transaction  # Import categorize_transaction
-
+from app.modules.finance.forms import AccountForm, TransactionForm, TransactionImportForm, BillForm
+from app.modules.finance.models import Account, Transaction, Bill
+from datetime import datetime
 @finance_bp.route('/accounts', methods=['GET', 'POST'])
 @login_required
 def accounts():
@@ -165,8 +167,16 @@ def import_transactions():
 @login_required
 def dashboard():
     accounts = Account.query.filter_by(user_id=current_user.id).all()
-    transactions = Transaction.query.filter_by(user_id=current_user.id).order_by(Transaction.date.desc()).limit(5).all() # Limit to 5 recent transactions
-    return render_template('finance_dashboard.html', accounts=accounts, transactions=transactions)
+    transactions = Transaction.query.filter_by(user_id=current_user.id).order_by(Transaction.date.desc()).limit(5).all()
+    
+    # Add bills to dashboard
+    upcoming_bills = Bill.query.filter_by(user_id=current_user.id, status='pending') \
+                             .order_by(Bill.due_date).limit(5).all()
+    
+    return render_template('finance_dashboard.html', 
+                          accounts=accounts, 
+                          transactions=transactions,
+                          upcoming_bills=upcoming_bills)
 
 @finance_bp.route('/transactions/add', methods=['GET', 'POST'])
 @login_required
@@ -190,3 +200,117 @@ def add_transaction():
         return redirect(url_for('finance.transactions'))
         
     return render_template('add_transaction.html', form=form)
+@finance_bp.route('/bills', methods=['GET', 'POST'])
+@login_required
+def bills():
+    form = BillForm()
+    form.account.choices = [(a.id, a.name) for a in Account.query.filter_by(user_id=current_user.id)]
+    
+    if request.method == 'POST' and 'submit' in request.form:
+        try:
+            bill = Bill(
+                name=form.name.data,
+                amount=form.amount.data,
+                due_date=form.due_date.data,
+                billing_period_start=form.billing_period_start.data,
+                billing_period_end=form.billing_period_end.data,
+                bill_type=form.bill_type.data,
+                status=form.status.data,
+                payment_date=form.payment_date.data,
+                notes=form.notes.data,
+                account_id=form.account.data,
+                user_id=current_user.id
+            )
+            db.session.add(bill)
+            db.session.commit()
+            flash('Bill added successfully!', 'success')
+            return redirect(url_for('finance.bills'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error adding bill: {str(e)}', 'danger')
+    
+    # Get bills with filter options
+    status_filter = request.args.get('status', 'all')
+    type_filter = request.args.get('type', 'all')
+    
+    query = Bill.query.filter_by(user_id=current_user.id)
+    
+    if status_filter != 'all':
+        query = query.filter_by(status=status_filter)
+    if type_filter != 'all':
+        query = query.filter_by(bill_type=type_filter)
+        
+    bills = query.order_by(Bill.due_date).all()
+    
+    return render_template('bills.html', form=form, bills=bills, 
+                          status_filter=status_filter, type_filter=type_filter)
+
+@finance_bp.route('/bills/<int:bill_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_bill(bill_id):
+    bill = Bill.query.get_or_404(bill_id)
+    # Verify bill belongs to current user
+    if bill.user_id != current_user.id:
+        abort(403)
+        
+    form = BillForm(obj=bill)
+    form.account.choices = [(a.id, a.name) for a in Account.query.filter_by(user_id=current_user.id)]
+    
+    if request.method == 'POST' and 'submit' in request.form:
+        try:
+            bill.name = form.name.data
+            bill.amount = form.amount.data
+            bill.due_date = form.due_date.data
+            bill.billing_period_start = form.billing_period_start.data
+            bill.billing_period_end = form.billing_period_end.data
+            bill.bill_type = form.bill_type.data
+            bill.status = form.status.data
+            bill.payment_date = form.payment_date.data
+            bill.account_id = form.account.data
+            bill.notes = form.notes.data
+            
+            db.session.commit()
+            flash('Bill updated successfully!', 'success')
+            return redirect(url_for('finance.bills'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error updating bill: {str(e)}', 'danger')
+        
+    return render_template('edit_bill.html', form=form, bill=bill)
+
+@finance_bp.route('/bills/<int:bill_id>/delete', methods=['POST'])
+@login_required
+def delete_bill(bill_id):
+    bill = Bill.query.get_or_404(bill_id)
+    # Verify bill belongs to current user
+    if bill.user_id != current_user.id:
+        abort(403)
+        
+    try:
+        db.session.delete(bill)
+        db.session.commit()
+        flash('Bill deleted successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting bill: {str(e)}', 'danger')
+    
+    return redirect(url_for('finance.bills'))
+
+@finance_bp.route('/bills/<int:bill_id>/mark-paid', methods=['POST'])
+@login_required
+def mark_bill_paid(bill_id):
+    bill = Bill.query.get_or_404(bill_id)
+    # Verify bill belongs to current user
+    if bill.user_id != current_user.id:
+        abort(403)
+        
+    try:
+        bill.status = 'paid'
+        bill.payment_date = datetime.now().date()
+        db.session.commit()
+        flash('Bill marked as paid!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error updating bill: {str(e)}', 'danger')
+    
+    return redirect(url_for('finance.bills'))

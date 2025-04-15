@@ -1,0 +1,74 @@
+{% extends "layouts/base.html" %}
+
+{% block styles %}
+    {{ super() }}
+    <style>
+        :root {
+            --finance-header-image: url("{{ DEFAULT_FINANCE_HEADER }}");
+            --finance-bill-header-long: url("{{ DEFAULT_BILL_HEADER_LONG }}");
+            --finance-bill-header-short: url("{{ DEFAULT_BILL_HEADER_SHORT }}");
+        }
+        
+        /* Default card header styling */
+        .card .card-header {
+            background-image: var(--finance-header-image);
+            background-size: cover;
+            background-position: center;
+            height: 120px;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            border-bottom: none;
+            padding: 0;
+        }
+        
+        /* Special card header variants */
+        .card .card-header.bill-header-long {
+            background-image: var(--finance-bill-header-long);
+            height: 150px;
+        }
+        
+        .card .card-header.bill-header-short {
+            background-image: var(--finance-bill-header-short);
+            height: 100px;
+        }
+        
+        /* Other finance styling */
+        .card {
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+        }
+        
+        .card .card-body {
+            padding: 1.5rem;
+        }
+        
+        /* Table styling */
+        .table th {
+            font-weight: 600;
+        }
+        
+        /* Form enhancements */
+        .form-label {
+            font-weight: 500;
+        }
+        
+        /* Badge styling */
+        .badge {
+            font-weight: 500;
+            padding: 0.4em 0.6em;
+        }
+        
+        /* Button group styling */
+        .btn-group .btn {
+            margin-right: 2px;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="container mt-4">
+        {% include "components/breadcrumbs.html" %}
+        {% block finance_content %}{% endblock %}
+    </div>
+{% endblock %}

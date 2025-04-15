@@ -1,0 +1,244 @@
+{% extends "layouts/finance_base.html" %}
+
+{% block finance_content %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bill-header-long"></div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h2 class="card-title">Your Bills</h2>
+                        <div class="d-flex gap-2">
+                            <!-- Add Bill Button -->
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addBillModal">
+                                <i class="bi bi-plus-circle"></i> Add New Bill
+                            </button>
+                            
+                            <!-- Filter Controls -->
+                            <div class="filter-controls">
+                                <form method="GET" class="row row-cols-lg-auto g-3 align-items-center">
+                                    <div class="col-12">
+                                        <select name="status" class="form-select form-select-sm">
+                                            <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Statuses</option>
+                                            <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                                            <option value="paid" {% if status_filter == 'paid' %}selected{% endif %}>Paid</option>
+                                            <option value="overdue" {% if status_filter == 'overdue' %}selected{% endif %}>Overdue</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12">
+                                        <select name="type" class="form-select form-select-sm">
+                                            <option value="all" {% if type_filter == 'all' %}selected{% endif %}>All Types</option>
+                                            <option value="credit_card" {% if type_filter == 'credit_card' %}selected{% endif %}>Credit Card</option>
+                                            <option value="medical" {% if type_filter == 'medical' %}selected{% endif %}>Medical</option>
+                                            <option value="utility" {% if type_filter == 'utility' %}selected{% endif %}>Utility</option>
+                                            <option value="insurance" {% if type_filter == 'insurance' %}selected{% endif %}>Insurance</option>
+                                            <option value="subscription" {% if type_filter == 'subscription' %}selected{% endif %}>Subscription</option>
+                                            <option value="other" {% if type_filter == 'other' %}selected{% endif %}>Other</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12">
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary">Filter</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Amount</th>
+                                    <th>Type</th>
+                                    <th>Account</th>
+                                    <th>Due Date</th>
+                                    <th>Status</th>
+                                    <th>Notes</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for bill in bills %}
+                                <tr class="{% if bill.status == 'overdue' %}table-danger{% elif bill.status == 'paid' %}table-success{% endif %}">
+                                    <td>{{ bill.name }}</td>
+                                    <td>${{ "%.2f"|format(bill.amount) }}</td>
+                                    <td>{{ bill.bill_type|replace('_', ' ')|title }}</td>
+                                    <td>
+                                        {% if bill.account %}
+                                            <span class="badge bg-info text-dark">{{ bill.account.name }}</span>
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ bill.due_date.strftime('%Y-%m-%d') }}</td>
+                                    <td>
+                                        <span class="badge {% if bill.status == 'pending' %}bg-warning{% elif bill.status == 'paid' %}bg-success{% else %}bg-danger{% endif %}">
+                                            {{ bill.status|title }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if bill.notes %}
+                                            <span class="text-truncate d-inline-block" style="max-width: 150px;" data-bs-toggle="tooltip" title="{{ bill.notes }}">
+                                                {{ bill.notes }}
+                                            </span>
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            {% if bill.status != 'paid' %}
+                                            <form action="{{ url_for('finance.mark_bill_paid', bill_id=bill.id) }}"
+                                                  method="POST" class="d-inline">
+                                                <button type="submit" class="btn btn-sm btn-success">
+                                                    <i class="bi bi-check-circle"></i> Mark Paid
+                                                </button>
+                                            </form>
+                                            {% endif %}
+                                            <a href="{{ url_for('finance.edit_bill', bill_id=bill.id) }}"
+                                               class="btn btn-sm btn-primary">
+                                                <i class="bi bi-pencil"></i> Edit
+                                            </a>
+                                            <form action="{{ url_for('finance.delete_bill', bill_id=bill.id) }}"
+                                                  method="POST" class="d-inline">
+                                                <button type="submit" class="btn btn-sm btn-danger"
+                                                        onclick="return confirm('Are you sure you want to delete this bill?')">
+                                                    <i class="bi bi-trash"></i> Delete
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                {% if not bills %}
+                                <tr>
+                                    <td colspan="8" class="text-center">No bills found</td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal for adding bills -->
+    <div class="modal fade" id="addBillModal">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bill-header-short">
+                    <h5 class="modal-title">Add New Bill</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    {{ form.name.label(class="form-label") }}
+                                    {{ form.name(class="form-control") }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    {{ form.amount.label(class="form-label") }}
+                                    {{ form.amount(class="form-control") }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    {{ form.bill_type.label(class="form-label") }}
+                                    {{ form.bill_type(class="form-select") }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    {{ form.due_date.label(class="form-label") }}
+                                    {{ form.due_date(class="form-control", type="date") }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    {{ form.account.label(class="form-label") }}
+                                    {{ form.account(class="form-select") }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    {{ form.status.label(class="form-label") }}
+                                    {{ form.status(class="form-select") }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    {{ form.payment_date.label(class="form-label") }}
+                                    {{ form.payment_date(class="form-control", type="date") }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion mb-3" id="additionalFieldsAccordion">
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                            data-bs-target="#additionalFields" aria-expanded="false">
+                                        Additional Fields
+                                    </button>
+                                </h2>
+                                <div id="additionalFields" class="accordion-collapse collapse">
+                                    <div class="accordion-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group mb-3">
+                                                    {{ form.billing_period_start.label(class="form-label") }}
+                                                    {{ form.billing_period_start(class="form-control", type="date") }}
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group mb-3">
+                                                    {{ form.billing_period_end.label(class="form-label") }}
+                                                    {{ form.billing_period_end(class="form-control", type="date") }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group mb-3">
+                                            {{ form.notes.label(class="form-label") }}
+                                            {{ form.notes(class="form-control", rows=3) }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            {{ form.submit(class="btn btn-primary") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // Initialize tooltips
+    document.addEventListener('DOMContentLoaded', function() {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+        
+        // Clear form when modal is hidden
+        var addBillModal = document.getElementById('addBillModal');
+        addBillModal.addEventListener('hidden.bs.modal', function (event) {
+            document.querySelector('#addBillModal form').reset();
+        });
+    });
+    </script>
+{% endblock %}
