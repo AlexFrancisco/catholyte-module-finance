@@ -9,7 +9,7 @@
     <div class="row">
         <div class="col-md-6">
             <div class="card shadow-sm">
-                <div class="card-header"></div>
+                <div class="card-header accounts-header"></div>
                 <div class="card-body">
                     <h5 class="card-title"><i class="bi bi-wallet2"></i> Accounts Overview</h5>
                     <ul class="list-group list-group-flush">
@@ -29,9 +29,10 @@
 
         <div class="col-md-6">
             <div class="card shadow-sm">
-                <div class="card-header"></div>
+                <div class="card-header transactions-header"></div>
 
                 <div class="card-body">
+                    
                     <h5 class="card-title"><i class="bi bi-credit-card"></i> Recent Transactions</h5>
                     <ul class="list-group list-group-flush">
                         {% for transaction in transactions %}
@@ -97,7 +98,45 @@
             </div>
         </div>
     </div>
-
+    <div class="card mb-4">
+        <div class="card-header">
+        </div>
+        <div class="card-body">
+            <h5 class="card-title mb-0">Income Summary</h5>
+            <div class="d-flex justify-content-between mb-3">
+                <div>
+                    <h6>This Month</h6>
+                    <h3>${{ "%.2f"|format(monthly_income) }}</h3>
+                </div>
+                <div>
+                    <h6>Last Month</h6>
+                    <h3>${{ "%.2f"|format(previous_month_income) }}</h3>
+                </div>
+            </div>
+            
+            {% if recent_income %}
+            <div class="mb-3">
+                <h6>Recent Income</h6>
+                <ul class="list-group">
+                    {% for income in recent_income %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>{{ income.source }}</strong>
+                            <div class="text-muted">{{ income.income_type }} - {{ income.date_received.strftime('%Y-%m-%d') }}</div>
+                        </div>
+                        <span class="badge bg-success rounded-pill">${{ "%.2f"|format(income.amount) }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+            
+            <div class="mt-3">
+                <a href="{{ url_for('finance.income_list') }}" class="btn btn-sm btn-outline-primary">View All Income</a>
+                <a href="{{ url_for('finance.create_income') }}" class="btn btn-sm btn-primary">Add Income</a>
+            </div>
+        </div>
+    </div>
     <div class="row mt-4">
         <div class="col-md-12">
             <div class="card shadow-sm">
@@ -137,4 +176,7 @@
         </div>
     </div>
 </div>
+
+
+
 {% endblock %}

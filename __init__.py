@@ -42,7 +42,8 @@ def inject_template_vars():
         'DEFAULT_FINANCE_HEADER': get_latest_image_url('finance', None, None, 'header-default'),
         'DEFAULT_BILL_HEADER_LONG': get_latest_image_url('finance', None, None, 'header-bill-long'),
         'DEFAULT_BILL_HEADER_SHORT': get_latest_image_url('finance', None, None, 'header-bill-short'),
-        
+        'DEFAULT_TRANSACTIONS_HEADER': get_latest_image_url('finance', None, None, 'header-transactions'),  
+        'DEFAULT_ACCOUNTS_HEADER': get_latest_image_url('finance', None, None, 'header-accounts'),
         # Breadcrumb data
         'breadcrumbs': current_breadcrumbs
     }

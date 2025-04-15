@@ -7,6 +7,8 @@
             --finance-header-image: url("{{ DEFAULT_FINANCE_HEADER }}");
             --finance-bill-header-long: url("{{ DEFAULT_BILL_HEADER_LONG }}");
             --finance-bill-header-short: url("{{ DEFAULT_BILL_HEADER_SHORT }}");
+            --finance-transactions-header: url("{{ DEFAULT_TRANSACTIONS_HEADER }}");  /* Added transaction header */
+            --finance-accounts-header: url("{{ DEFAULT_ACCOUNTS_HEADER }}");  /* Added accounts header */
         }
         
         /* Default card header styling */
@@ -31,7 +33,14 @@
             background-image: var(--finance-bill-header-short);
             height: 100px;
         }
-        
+        .card .card-header.transactions-header {
+            background-image: var(--finance-transactions-header);
+            height: 100px;
+        } 
+        .card .card-header.accounts-header {
+            background-image: var(--finance-accounts-header);
+            height: 100px;
+        } 
         /* Other finance styling */
         .card {
             border-radius: 8px;

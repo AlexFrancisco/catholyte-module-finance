@@ -1,6 +1,6 @@
 # finance/forms.py
 from flask_wtf import FlaskForm
-from wtforms import StringField, FloatField, SelectField, DateTimeField, SubmitField, DateField, TextAreaField
+from wtforms import StringField, FloatField, SelectField, DateTimeField, SubmitField, DateField, TextAreaField, BooleanField
 from wtforms.validators import DataRequired, Optional
 from flask_wtf.file import FileField, FileRequired, FileAllowed
 from datetime import date
@@ -57,3 +57,28 @@ class BillForm(FlaskForm):
     account = SelectField('Associated Account', validators=[DataRequired()], coerce=int)
     notes = TextAreaField('Notes', validators=[Optional()])
     submit = SubmitField('Save Bill')
+
+class IncomeForm(FlaskForm):
+    source = StringField('Source', validators=[DataRequired()])
+    amount = FloatField('Amount', validators=[DataRequired()])
+    date_received = DateField('Date Received', validators=[DataRequired()])
+    income_type = SelectField('Income Type', choices=[
+        ('salary', 'Salary'), 
+        ('dividend', 'Dividend'), 
+        ('interest', 'Interest'),
+        ('freelance', 'Freelance'),
+        ('other', 'Other')
+    ], validators=[DataRequired()])
+    is_recurring = BooleanField('Is Recurring')
+    recurrence_pattern = SelectField('Recurrence Pattern', choices=[
+        ('', 'None'),
+        ('weekly', 'Weekly'),
+        ('bi-weekly', 'Bi-Weekly'),
+        ('monthly', 'Monthly'),
+        ('quarterly', 'Quarterly'),
+        ('annually', 'Annually')
+    ])
+    next_expected_date = DateField('Next Expected Date', validators=[], format='%Y-%m-%d')
+    description = TextAreaField('Description')
+    account_id = SelectField('Account', coerce=int, validators=[Optional()])
+    submit = SubmitField('Save')

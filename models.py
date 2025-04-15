@@ -52,3 +52,27 @@ class Bill(db.Model):
     
     def __repr__(self):
         return f"<Bill {self.name} - ${self.amount} due on {self.due_date}>"
+    
+class Income(db.Model):
+    __tablename__ = 'income'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    source = db.Column(db.String(100), nullable=False)  # Employer name, investment source, etc.
+    amount = db.Column(db.Float, nullable=False)
+    date_received = db.Column(db.Date, nullable=False)
+    income_type = db.Column(db.String(50), nullable=False)  # Salary, dividend, interest, freelance, etc.
+    is_recurring = db.Column(db.Boolean, default=False)  # Whether this is a regular income source
+    recurrence_pattern = db.Column(db.String(50), nullable=True)  # weekly, bi-weekly, monthly if recurring
+    next_expected_date = db.Column(db.Date, nullable=True)  # When next income is expected if recurring
+    description = db.Column(db.Text, nullable=True)  # Additional details
+    
+    # Foreign keys
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    account_id = db.Column(db.Integer, db.ForeignKey('account.id'))
+    
+    # Relationships
+    user = db.relationship('User', backref=db.backref('incomes', lazy=True))
+    account = db.relationship('Account', backref=db.backref('incomes', lazy=True))
+    
+    def __repr__(self):
+        return f"<Income {self.source} - ${self.amount} received on {self.date_received}>"

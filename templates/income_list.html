@@ -1,0 +1,88 @@
+{% extends "layouts/finance_base.html" %}
+
+{% block finance_content %}
+<div class="container">
+
+
+    <div class="card">
+        <div class="card-header bill-header-long"></div>
+        <h1>Income Records</h1>
+        <div class="mb-3">
+            <a href="{{ url_for('finance.create_income') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add Income
+            </a>
+        </div>
+        
+        <div class="card-body">
+            {% if incomes %}
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Source</th>
+                            <th>Amount</th>
+                            <th>Date Received</th>
+                            <th>Type</th>
+                            <th>Recurring</th>
+                            <th>Account</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for income in incomes %}
+                        <tr>
+                            <td>{{ income.source }}</td>
+                            <td>${{ "%.2f"|format(income.amount) }}</td>
+                            <td>{{ income.date_received.strftime('%Y-%m-%d') }}</td>
+                            <td>{{ income.income_type }}</td>
+                            <td>
+                                {% if income.is_recurring %}
+                                    Yes ({{ income.recurrence_pattern }})
+                                {% else %}
+                                    No
+                                {% endif %}
+                            </td>
+                            <td>{{ income.account.name if income.account else 'N/A' }}</td>
+                            <td>
+                                <a href="{{ url_for('finance.edit_income', income_id=income.id) }}" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ income.id }}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                
+                                <!-- Delete Modal -->
+                                <div class="modal fade" id="deleteModal{{ income.id }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Confirm Delete</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                Are you sure you want to delete the income record from {{ income.source }} for ${{ "%.2f"|format(income.amount) }}?
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <form action="{{ url_for('finance.delete_income', income_id=income.id) }}" method="post">
+                                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                No income records found. Click "Add Income" to create one.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
