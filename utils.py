@@ -1,6 +1,6 @@
 import os
 from flask import current_app
-from app.services.llm_service import generate_llm_content, construct_prompt
+from app.core.services import generate_llm_content, construct_prompt
 
 def categorize_transaction(transaction_description):
     """
